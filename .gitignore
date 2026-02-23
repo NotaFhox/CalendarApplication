@@ -1,0 +1,53 @@
+## Visual Studio / .NET
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.ncrunchsolution
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Rider
+.idea/
+
+## VSCode
+.vscode/
+
+## macOS
+.DS_Store
+
+## SQLite database files (local dev data)
+*.db
+*.db-shm
+*.db-wal
+
+## EF Core migrations snapshots you may want to keep – remove this line if so
+# Migrations/
+
+## Build outputs
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+arm/
+arm64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Publish output
+publish/
+PublishProfiles/
+
+## NuGet
+*.nupkg
+.nuget/

@@ -1,0 +1,119 @@
+<Page
+    x:Class="Calender.Views.CalendarPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:models="using:Calender.Models"
+    xmlns:vm="using:Calender.ViewModels"
+    Background="Transparent">
+
+    <Grid Padding="24,16,24,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>   <!-- month nav bar     -->
+            <RowDefinition Height="Auto"/>   <!-- day-name headers  -->
+            <RowDefinition Height="*"/>      <!-- 6-week grid       -->
+        </Grid.RowDefinitions>
+
+        <!-- ── Month navigation ──────────────────────────────────────────── -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock
+                Grid.Column="0"
+                Text="{x:Bind ViewModel.MonthYearDisplay, Mode=OneWay}"
+                Style="{StaticResource TitleLargeTextBlockStyle}"
+                VerticalAlignment="Center"/>
+
+            <Button Grid.Column="1"
+                    Command="{x:Bind ViewModel.PreviousMonthCommand}"
+                    Margin="0,0,8,0"
+                    ToolTipService.ToolTip="Previous month">
+                <FontIcon Glyph="&#xE76B;" FontSize="14"/>
+            </Button>
+
+            <Button Grid.Column="2"
+                    Command="{x:Bind ViewModel.NextMonthCommand}"
+                    ToolTipService.ToolTip="Next month">
+                <FontIcon Glyph="&#xE76C;" FontSize="14"/>
+            </Button>
+        </Grid>
+
+        <!-- ── Day-name headers ──────────────────────────────────────────── -->
+        <Grid Grid.Row="1" Margin="0,0,0,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/><ColumnDefinition/><ColumnDefinition/>
+                <ColumnDefinition/><ColumnDefinition/><ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="SUN" HorizontalAlignment="Center"
+                       FontSize="11" FontWeight="SemiBold"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            <TextBlock Grid.Column="1" Text="MON" HorizontalAlignment="Center"
+                       FontSize="11" FontWeight="SemiBold"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            <TextBlock Grid.Column="2" Text="TUE" HorizontalAlignment="Center"
+                       FontSize="11" FontWeight="SemiBold"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            <TextBlock Grid.Column="3" Text="WED" HorizontalAlignment="Center"
+                       FontSize="11" FontWeight="SemiBold"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            <TextBlock Grid.Column="4" Text="THU" HorizontalAlignment="Center"
+                       FontSize="11" FontWeight="SemiBold"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            <TextBlock Grid.Column="5" Text="FRI" HorizontalAlignment="Center"
+                       FontSize="11" FontWeight="SemiBold"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            <TextBlock Grid.Column="6" Text="SAT" HorizontalAlignment="Center"
+                       FontSize="11" FontWeight="SemiBold"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+        </Grid>
+
+        <!-- ──calendar grid ──────────────────────────────────────── -->
+        <ItemsRepeater
+            Grid.Row="2"
+            ItemsSource="{x:Bind ViewModel.CalendarDays, Mode=OneWay}">
+
+            <ItemsRepeater.Layout>
+                <UniformGridLayout
+                    MaximumRowsOrColumns="7"
+                    Orientation="Horizontal"
+                    MinColumnSpacing="0"
+                    MinRowSpacing="0"/>
+            </ItemsRepeater.Layout>
+
+            <ItemsRepeater.ItemTemplate>
+                <DataTemplate x:DataType="models:CalendarDay">
+                    <Border
+                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        BorderThickness="0,1,1,0"
+                        MinHeight="80"
+                        Padding="6,4">
+                        <StackPanel>
+                            <!-- Day number badge -->
+                            <Border
+                                Width="26" Height="26"
+                                CornerRadius="13"
+                                HorizontalAlignment="Left"
+                                Background="{x:Bind IsToday,
+                                    Converter={StaticResource BoolToAccentBrushConverter},
+                                    Mode=OneTime}">
+                                <TextBlock
+                                    Text="{x:Bind Date.Day}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    Opacity="{x:Bind IsCurrentMonth,
+                                        Converter={StaticResource BoolToOpacityConverter},
+                                        Mode=OneTime}"/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+
+        </ItemsRepeater>
+    </Grid>
+</Page>
