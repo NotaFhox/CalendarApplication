@@ -1,0 +1,80 @@
+<Window
+    x:Class="Calender.WidgetWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Calendar Widget">
+
+    <!-- Acrylic material for the frosted-glass backdrop -->
+    <Window.SystemBackdrop>
+        <DesktopAcrylicBackdrop/>
+    </Window.SystemBackdrop>
+
+    <!--
+        Root border acts as the visual widget frame.
+        PointerPressed on any non-interactive area initiates the drag.
+    -->
+    <Border
+        x:Name="RootBorder"
+        CornerRadius="10"
+        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+        BorderThickness="1"
+        PointerPressed="RootBorder_PointerPressed">
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>  <!-- drag handle / header -->
+                <RowDefinition Height="*"/>     <!-- widget content       -->
+            </Grid.RowDefinitions>
+
+            <!-- ── Header strip (drag target + controls) ─────────────────── -->
+            <Grid
+                Grid.Row="0"
+                Padding="12,8,8,8"
+                Background="Transparent">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock
+                    Grid.Column="0"
+                    Text="CALENDAR"
+                    FontSize="10"
+                    FontWeight="SemiBold"
+                    CharacterSpacing="60"
+                    Opacity="0.45"
+                    VerticalAlignment="Center"/>
+
+                <!-- Toggle Small ↔ Large -->
+                <Button
+                    Grid.Column="1"
+                    x:Name="SizeBtn"
+                    Click="SizeBtn_Click"
+                    Width="26" Height="26"
+                    Padding="0"
+                    ToolTipService.ToolTip="Toggle size"
+                    Background="Transparent"
+                    BorderThickness="0">
+                    <FontIcon x:Name="SizeIcon" Glyph="&#xE73F;" FontSize="11"/>
+                </Button>
+
+                <!-- Close widget -->
+                <Button
+                    Grid.Column="2"
+                    Click="CloseBtn_Click"
+                    Width="26" Height="26"
+                    Padding="0"
+                    Margin="2,0,0,0"
+                    ToolTipService.ToolTip="Close widget"
+                    Background="Transparent"
+                    BorderThickness="0">
+                    <FontIcon Glyph="&#xE711;" FontSize="11"/>
+                </Button>
+            </Grid>
+
+            <!-- ── Content frame ──────────────────────────────────────────── -->
+            <Frame Grid.Row="1" x:Name="WidgetFrame"/>
+        </Grid>
+    </Border>
+</Window>

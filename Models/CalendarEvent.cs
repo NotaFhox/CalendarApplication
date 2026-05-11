@@ -16,4 +16,7 @@ public class CalendarEvent
     public string   Color       { get; set; } = "#0078D4";
     public DateTime CreatedAt   { get; set; } = DateTime.Now;
     public DateTime UpdatedAt   { get; set; } = DateTime.Now;
+
+    /// <summary>Short time label shown in the large widget's event list.</summary>
+    public string StartTimeShort => IsAllDay ? "All day" : StartTime.ToString("h:mm tt");
 }

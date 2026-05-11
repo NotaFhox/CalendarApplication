@@ -31,6 +31,20 @@
             </NavigationViewItem>
         </NavigationView.MenuItems>
 
+        <!-- ── Pane footer: widget toggle ────────────────────────────────── -->
+        <NavigationView.PaneFooter>
+            <NavigationViewItem
+                x:Name="WidgetToggleItem"
+                Content="Widget"
+                SelectsOnInvoked="False"
+                Tapped="WidgetToggle_Tapped"
+                ToolTipService.ToolTip="Toggle calendar widget">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE78B;"/>
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.PaneFooter>
+
         <!-- Primary content frame — pages are navigated into here -->
         <Frame x:Name="ContentFrame" Background="Transparent"/>
 

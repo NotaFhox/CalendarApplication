@@ -11,8 +11,10 @@
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Value converters used across pages -->
-            <conv:BoolToAccentBrushConverter x:Key="BoolToAccentBrushConverter"/>
-            <conv:BoolToOpacityConverter     x:Key="BoolToOpacityConverter"/>
+            <conv:BoolToAccentBrushConverter  x:Key="BoolToAccentBrushConverter"/>
+            <conv:BoolToOpacityConverter      x:Key="BoolToOpacityConverter"/>
+            <conv:StringToColorConverter      x:Key="StringToColorConverter"/>
+            <conv:BoolToVisibilityConverter   x:Key="BoolToVisibilityConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

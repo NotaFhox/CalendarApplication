@@ -1,6 +1,7 @@
 using Calender.Views;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 
 namespace Calender;
 
@@ -12,6 +13,9 @@ public sealed partial class MainWindow : Window
         ["CalendarPage"] = typeof(CalendarPage),
         ["AgendaPage"]   = typeof(CalendarPage), // placeholder until AgendaPage is created
     };
+
+    // Nullable — null means the widget is not currently open
+    private WidgetWindow? _widgetWindow;
 
     public MainWindow()
     {
@@ -35,6 +39,23 @@ public sealed partial class MainWindow : Window
             && _pageMap.TryGetValue(tag, out var pageType))
         {
             ContentFrame.Navigate(pageType);
+        }
+    }
+
+    // ── Widget toggle ─────────────────────────────────────────────────────────
+
+    private void WidgetToggle_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (_widgetWindow is null)
+        {
+            _widgetWindow = new WidgetWindow();
+            _widgetWindow.Closed += (_, _) => _widgetWindow = null;
+            _widgetWindow.Activate();
+        }
+        else
+        {
+            _widgetWindow.Close();
+            // _widgetWindow is set back to null by the Closed handler above
         }
     }
 }

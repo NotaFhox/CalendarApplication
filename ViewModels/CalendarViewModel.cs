@@ -10,7 +10,12 @@ public partial class CalendarViewModel : ObservableObject
 {
     private readonly CalendarService _service = new();
 
-    // ── Displayed month ───────────────────────────────────────────────────────
+    // ── Event raised when the Page should open the EventEditorDialog.
+    //    null  → create new event
+    //    value → edit existing event
+    public event EventHandler<CalendarEvent?>? EventEditorRequested;
+
+    // ── State ─────────────────────────────────────────────────────────────────
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MonthYearDisplay))]
@@ -18,15 +23,11 @@ public partial class CalendarViewModel : ObservableObject
 
     public string MonthYearDisplay => DisplayedMonth.ToString("MMMM yyyy");
 
-    // ── Calendar grid cells ───────────────────────────────────────────────────
-
     [ObservableProperty]
     private ObservableCollection<CalendarDay> _calendarDays = [];
 
-    // ── Selected event (for detail panel) ────────────────────────────────────
-
     [ObservableProperty]
-    private CalendarEvent? _selectedEvent;
+    private CalendarDay? _selectedDay;
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
@@ -36,7 +37,7 @@ public partial class CalendarViewModel : ObservableObject
         _ = LoadEventsAsync();
     }
 
-    // ── Commands ──────────────────────────────────────────────────────────────
+    // ── Navigation commands ───────────────────────────────────────────────────
 
     [RelayCommand]
     private void PreviousMonth()
@@ -54,30 +55,59 @@ public partial class CalendarViewModel : ObservableObject
         _ = LoadEventsAsync();
     }
 
+    // ── Data loading ──────────────────────────────────────────────────────────
+
     [RelayCommand]
     private async Task LoadEventsAsync()
     {
-        var start = DisplayedMonth;
-        var end   = DisplayedMonth.AddMonths(1);
+        var start  = DisplayedMonth;
+        var end    = DisplayedMonth.AddMonths(1);
         var events = await _service.GetEventsAsync(start, end);
 
-        
         foreach (var day in CalendarDays)
-        {
             day.Events = events
                 .Where(e => e.StartTime.Date == day.Date.Date)
                 .ToList();
-        }
     }
 
-    
+    // ── Editor trigger (called by the Page's event handlers) ─────────────────
+
+    [RelayCommand]
+    private void RequestNewEvent() => EventEditorRequested?.Invoke(this, null);
+
+    public void RequestEditEvent(CalendarEvent evt) =>
+        EventEditorRequested?.Invoke(this, evt);
+
+    // ── CRUD commands ─────────────────────────────────────────────────────────
+
+    [RelayCommand]
+    private async Task CreateEventAsync(CalendarEvent evt)
+    {
+        await _service.CreateAsync(evt);
+        await LoadEventsAsync();
+    }
+
+    [RelayCommand]
+    private async Task UpdateEventAsync(CalendarEvent evt)
+    {
+        await _service.UpdateAsync(evt);
+        await LoadEventsAsync();
+    }
+
+    [RelayCommand]
+    private async Task DeleteEventAsync(CalendarEvent evt)
+    {
+        await _service.DeleteAsync(evt.Id);
+        await LoadEventsAsync();
+    }
+
+    // ── Grid builder ─────────────────────────────────────────────────────────
+
     private void BuildCalendarGrid()
     {
         CalendarDays.Clear();
-
         var firstOfMonth = DisplayedMonth;
-        // Rewind to the Sunday that starts the first visible week
-        var gridStart = firstOfMonth.AddDays(-(int)firstOfMonth.DayOfWeek);
+        var gridStart    = firstOfMonth.AddDays(-(int)firstOfMonth.DayOfWeek);
 
         for (var i = 0; i < 42; i++)
         {
