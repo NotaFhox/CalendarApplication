@@ -11,6 +11,10 @@ public partial class App : Application
     {
         this.InitializeComponent();
         InitializeDatabase();
+
+        // Enable built-in WinUI interaction sounds (button clicks, selection, etc.)
+        ElementSoundPlayer.State = ElementSoundPlayerState.On;
+        ElementSoundPlayer.SpatialAudioMode = ElementSpatialAudioMode.Off;
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)

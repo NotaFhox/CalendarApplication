@@ -12,4 +12,6 @@ public class AppSettings
     public int    WidgetY    { get; set; } = 80;
     /// <summary>"Small" | "Large"</summary>
     public string WidgetSize { get; set; } = "Large";
+    /// <summary>Whether the widget floats above all other windows.</summary>
+    public bool WidgetAlwaysOnTop { get; set; } = true;
 }

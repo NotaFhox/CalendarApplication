@@ -29,6 +29,9 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
     [ObservableProperty] private ObservableCollection<CalendarEvent> _todayEvents    = [];
     [ObservableProperty] private ObservableCollection<CalendarEvent> _upcomingEvents = [];
 
+    public bool HasNoTodayEvents    => TodayEvents.Count    == 0;
+    public bool HasNoUpcomingEvents => UpcomingEvents.Count == 0;
+
     // ── Mini-calendar (large widget) ──────────────────────────────────────────
 
     [ObservableProperty]
@@ -77,6 +80,9 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
         // Distribute events into calendar-day dots
         foreach (var day in CalendarDays)
             day.Events = events.Where(e => e.StartTime.Date == day.Date.Date).ToList();
+
+        OnPropertyChanged(nameof(HasNoTodayEvents));
+        OnPropertyChanged(nameof(HasNoUpcomingEvents));
     }
 
     // ── Grid builder ──────────────────────────────────────────────────────────

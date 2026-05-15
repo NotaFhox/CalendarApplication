@@ -6,9 +6,8 @@
     Title="Calender">
 
 
-    <Window.SystemBackdrop>
-        <MicaBackdrop Kind="BaseAlt"/>
-    </Window.SystemBackdrop>
+    <!-- Backdrop is set programmatically in code-behind so IsInputActive stays true
+         even when the window loses focus (avoids the automatic dimming behaviour). -->
 
     <NavigationView
         x:Name="NavView"

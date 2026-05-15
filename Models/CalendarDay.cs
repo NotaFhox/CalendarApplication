@@ -20,4 +20,11 @@ public partial class CalendarDay : ObservableObject
     public int    OverflowCount => Math.Max(0, Events.Count - 3);
     public bool   HasOverflow   => OverflowCount > 0;
     public string OverflowLabel => $"+{OverflowCount} more";
+
+    /// <summary>Human-readable date for the day-detail flyout header.</summary>
+    public string DateLabel => Date.ToString("dddd, MMMM d");
+
+    /// <summary>True for Saturday and Sunday — used to tint weekend columns.</summary>
+    public bool IsWeekend =>
+        Date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
 }

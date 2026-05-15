@@ -72,11 +72,33 @@ public partial class CalendarViewModel : ObservableObject
 
     // ── Editor trigger (called by the Page's event handlers) ─────────────────
 
+    /// <summary>Date to pre-fill when opening the dialog for a new event (null = today).</summary>
+    public DateTime? PendingCreateDate { get; private set; }
+
     [RelayCommand]
-    private void RequestNewEvent() => EventEditorRequested?.Invoke(this, null);
+    private void RequestNewEvent()
+    {
+        PendingCreateDate = null;
+        EventEditorRequested?.Invoke(this, null);
+    }
+
+    /// <summary>Opens the create dialog with the given date pre-filled.</summary>
+    public void RequestNewEventOnDate(DateTime date)
+    {
+        PendingCreateDate = date;
+        EventEditorRequested?.Invoke(this, null);
+    }
 
     public void RequestEditEvent(CalendarEvent evt) =>
         EventEditorRequested?.Invoke(this, evt);
+
+    [RelayCommand]
+    private void GoToToday()
+    {
+        DisplayedMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+        BuildCalendarGrid();
+        _ = LoadEventsAsync();
+    }
 
     // ── CRUD commands ─────────────────────────────────────────────────────────
 

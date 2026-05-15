@@ -4,21 +4,15 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Calendar Widget">
 
-    <!-- Acrylic material for the frosted-glass backdrop -->
-    <Window.SystemBackdrop>
-        <DesktopAcrylicBackdrop/>
-    </Window.SystemBackdrop>
+    <!-- Backdrop is programmatic — see code-behind (IsInputActive always true). -->
 
-    <!--
-        Root border acts as the visual widget frame.
-        PointerPressed on any non-interactive area initiates the drag.
-    -->
     <Border
         x:Name="RootBorder"
+        Opacity="0"
         CornerRadius="10"
         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
         BorderThickness="1"
-        PointerPressed="RootBorder_PointerPressed">
+        Loaded="RootBorder_Loaded">
 
         <Grid>
             <Grid.RowDefinitions>
@@ -26,49 +20,99 @@
                 <RowDefinition Height="*"/>     <!-- widget content       -->
             </Grid.RowDefinitions>
 
-            <!-- ── Header strip (drag target + controls) ─────────────────── -->
-            <Grid
-                Grid.Row="0"
-                Padding="12,8,8,8"
-                Background="Transparent">
+            <!-- ── Header: drag zone (left) + control buttons (right) ─────── -->
+            <!--
+                Only the drag zone Border (left half) calls PostMessageW so that
+                clicking event text in the content area never accidentally drags.
+                The six dots give a visual cue that the strip is draggable.
+            -->
+            <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>    <!-- drag zone       -->
+                    <ColumnDefinition Width="Auto"/> <!-- pin toggle      -->
+                    <ColumnDefinition Width="Auto"/> <!-- size toggle     -->
+                    <ColumnDefinition Width="Auto"/> <!-- close           -->
                 </Grid.ColumnDefinitions>
 
-                <TextBlock
+                <!-- Drag zone: grip dots + label -->
+                <Border
                     Grid.Column="0"
-                    Text="CALENDAR"
-                    FontSize="10"
-                    FontWeight="SemiBold"
-                    CharacterSpacing="60"
-                    Opacity="0.45"
-                    VerticalAlignment="Center"/>
+                    Padding="10,8,8,8"
+                    Background="Transparent"
+                    PointerPressed="DragHandle_PointerPressed"
+                    ToolTipService.ToolTip="Drag to move">
+                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
 
-                <!-- Toggle Small ↔ Large -->
+                        <!-- 2×3 grip dot grid -->
+                        <Grid Width="10" VerticalAlignment="Center" Opacity="0.35">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Ellipse Grid.Row="0" Grid.Column="0" Width="2.5" Height="2.5" Margin="0,0,3,3" Fill="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center"/>
+                            <Ellipse Grid.Row="0" Grid.Column="1" Width="2.5" Height="2.5" Margin="0,0,0,3" Fill="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center"/>
+                            <Ellipse Grid.Row="1" Grid.Column="0" Width="2.5" Height="2.5" Margin="0,0,3,3" Fill="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center"/>
+                            <Ellipse Grid.Row="1" Grid.Column="1" Width="2.5" Height="2.5" Margin="0,0,0,3" Fill="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center"/>
+                            <Ellipse Grid.Row="2" Grid.Column="0" Width="2.5" Height="2.5" Margin="0,0,3,0"  Fill="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center"/>
+                            <Ellipse Grid.Row="2" Grid.Column="1" Width="2.5" Height="2.5"                   Fill="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center"/>
+                        </Grid>
+
+                        <TextBlock
+                            Text="CALENDAR"
+                            FontSize="10"
+                            FontWeight="SemiBold"
+                            CharacterSpacing="60"
+                            Opacity="0.45"
+                            VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Pin / Unpin -->
                 <Button
                     Grid.Column="1"
+                    x:Name="PinBtn"
+                    Click="PinBtn_Click"
+                    Width="28" Height="28"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    PointerEntered="WidgetBtn_PointerEntered"
+                    PointerExited="WidgetBtn_PointerExited">
+                    <FontIcon x:Name="PinIcon" Glyph="&#xE718;" FontSize="11"/>
+                </Button>
+
+                <!-- Size toggle -->
+                <Button
+                    Grid.Column="2"
                     x:Name="SizeBtn"
                     Click="SizeBtn_Click"
-                    Width="26" Height="26"
+                    Width="28" Height="28"
                     Padding="0"
-                    ToolTipService.ToolTip="Toggle size"
+                    Margin="2,0,0,0"
                     Background="Transparent"
-                    BorderThickness="0">
+                    BorderThickness="0"
+                    PointerEntered="WidgetBtn_PointerEntered"
+                    PointerExited="WidgetBtn_PointerExited">
                     <FontIcon x:Name="SizeIcon" Glyph="&#xE73F;" FontSize="11"/>
                 </Button>
 
-                <!-- Close widget -->
+                <!-- Close -->
                 <Button
-                    Grid.Column="2"
+                    Grid.Column="3"
                     Click="CloseBtn_Click"
-                    Width="26" Height="26"
+                    Width="28" Height="28"
                     Padding="0"
-                    Margin="2,0,0,0"
+                    Margin="2,0,4,0"
                     ToolTipService.ToolTip="Close widget"
                     Background="Transparent"
-                    BorderThickness="0">
+                    BorderThickness="0"
+                    PointerEntered="WidgetBtn_PointerEntered"
+                    PointerExited="WidgetBtn_PointerExited">
                     <FontIcon Glyph="&#xE711;" FontSize="11"/>
                 </Button>
             </Grid>

@@ -19,4 +19,14 @@ public class CalendarEvent
 
     /// <summary>Short time label shown in the large widget's event list.</summary>
     public string StartTimeShort => IsAllDay ? "All day" : StartTime.ToString("h:mm tt");
+
+    /// <summary>Single-line tooltip shown on calendar chips: title + time (+ location if set).</summary>
+    public string ChipTooltip
+    {
+        get
+        {
+            var s = IsAllDay ? $"{Title}  All day" : $"{Title}  {StartTimeShort}";
+            return !string.IsNullOrWhiteSpace(Location) ? $"{s}  |  {Location}" : s;
+        }
+    }
 }

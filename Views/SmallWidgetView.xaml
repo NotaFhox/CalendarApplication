@@ -39,6 +39,15 @@
                 Opacity="0.45"
                 CharacterSpacing="60"/>
 
+            <TextBlock
+                Text="No events today"
+                FontSize="11"
+                Opacity="0.35"
+                Margin="0,2,0,0"
+                Visibility="{x:Bind ViewModel.HasNoTodayEvents,
+                    Converter={StaticResource BoolToVisibilityConverter},
+                    Mode=OneWay}"/>
+
             <ItemsRepeater ItemsSource="{x:Bind ViewModel.TodayEvents, Mode=OneWay}">
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="models:CalendarEvent">
@@ -67,6 +76,15 @@
                 FontWeight="SemiBold"
                 Opacity="0.45"
                 CharacterSpacing="60"/>
+
+            <TextBlock
+                Text="Nothing coming up"
+                FontSize="11"
+                Opacity="0.35"
+                Margin="0,2,0,0"
+                Visibility="{x:Bind ViewModel.HasNoUpcomingEvents,
+                    Converter={StaticResource BoolToVisibilityConverter},
+                    Mode=OneWay}"/>
 
             <ItemsRepeater ItemsSource="{x:Bind ViewModel.UpcomingEvents, Mode=OneWay}">
                 <ItemsRepeater.ItemTemplate>

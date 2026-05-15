@@ -3,8 +3,8 @@ using Microsoft.UI.Xaml.Data;
 
 namespace Calender.Converters;
 
-/// Converts bool → Visibility.
-er
+/// <summary>Converts bool to Visibility. Pass ConverterParameter=Invert to flip.</summary>
+public sealed class BoolToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
