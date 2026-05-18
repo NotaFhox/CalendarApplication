@@ -48,24 +48,26 @@
                     Converter={StaticResource BoolToVisibilityConverter},
                     Mode=OneWay}"/>
 
-            <ItemsRepeater ItemsSource="{x:Bind ViewModel.TodayEvents, Mode=OneWay}">
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="models:CalendarEvent">
-                        <StackPanel Orientation="Horizontal" Spacing="7" Margin="0,2">
-                            <Ellipse
-                                Width="6" Height="6"
-                                VerticalAlignment="Center"
-                                Fill="{x:Bind Color, Converter={StaticResource StringToColorConverter}}"/>
-                            <TextBlock
-                                Text="{x:Bind Title}"
-                                FontSize="12"
-                                TextTrimming="CharacterEllipsis"
-                                MaxLines="1"
-                                VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
+            <ScrollViewer MaxHeight="80" VerticalScrollBarVisibility="Auto">
+                <ItemsRepeater ItemsSource="{x:Bind ViewModel.TodayEvents, Mode=OneWay}">
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="models:CalendarEvent">
+                            <StackPanel Orientation="Horizontal" Spacing="7" Margin="0,2">
+                                <Ellipse
+                                    Width="6" Height="6"
+                                    VerticalAlignment="Center"
+                                    Fill="{x:Bind Color, Converter={StaticResource StringToColorConverter}}"/>
+                                <TextBlock
+                                    Text="{x:Bind Title}"
+                                    FontSize="12"
+                                    TextTrimming="CharacterEllipsis"
+                                    MaxLines="1"
+                                    VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
         </StackPanel>
 
         <!-- ── Upcoming ──────────────────────────────────────────────────── -->
@@ -86,25 +88,27 @@
                     Converter={StaticResource BoolToVisibilityConverter},
                     Mode=OneWay}"/>
 
-            <ItemsRepeater ItemsSource="{x:Bind ViewModel.UpcomingEvents, Mode=OneWay}">
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="models:CalendarEvent">
-                        <StackPanel Orientation="Horizontal" Spacing="7" Margin="0,2">
-                            <Ellipse
-                                Width="6" Height="6"
-                                VerticalAlignment="Center"
-                                Fill="{x:Bind Color, Converter={StaticResource StringToColorConverter}}"/>
-                            <TextBlock
-                                Text="{x:Bind Title}"
-                                FontSize="12"
-                                TextTrimming="CharacterEllipsis"
-                                MaxLines="1"
-                                VerticalAlignment="Center"
-                                Opacity="0.75"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
+            <ScrollViewer MaxHeight="80" VerticalScrollBarVisibility="Auto">
+                <ItemsRepeater ItemsSource="{x:Bind ViewModel.UpcomingEvents, Mode=OneWay}">
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="models:CalendarEvent">
+                            <StackPanel Orientation="Horizontal" Spacing="7" Margin="0,2">
+                                <Ellipse
+                                    Width="6" Height="6"
+                                    VerticalAlignment="Center"
+                                    Fill="{x:Bind Color, Converter={StaticResource StringToColorConverter}}"/>
+                                <TextBlock
+                                    Text="{x:Bind Title}"
+                                    FontSize="12"
+                                    TextTrimming="CharacterEllipsis"
+                                    MaxLines="1"
+                                    VerticalAlignment="Center"
+                                    Opacity="0.75"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
         </StackPanel>
 
     </StackPanel>

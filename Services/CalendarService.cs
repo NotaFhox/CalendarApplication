@@ -10,7 +10,7 @@ public class CalendarService
     {
         await using var ctx = new AppDbContext();
         return await ctx.Events
-            .Where(e => e.StartTime >= start && e.StartTime < end)
+            .Where(e => e.StartTime < end && e.EndTime >= start)
             .OrderBy(e => e.StartTime)
             .ToListAsync();
     }

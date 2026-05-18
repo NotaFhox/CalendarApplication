@@ -13,10 +13,12 @@ public partial class CalendarDay : ObservableObject
     [NotifyPropertyChangedFor(nameof(OverflowCount))]
     [NotifyPropertyChangedFor(nameof(HasOverflow))]
     [NotifyPropertyChangedFor(nameof(OverflowLabel))]
+    [NotifyPropertyChangedFor(nameof(HasAnyEvents))]
     private List<CalendarEvent> _events = [];
 
     // Only the first 3 events are shown as chips; the rest become "+N more"
-    public List<CalendarEvent> VisibleEvents => Events.Take(3).ToList();
+    public List<CalendarEvent> VisibleEvents  => Events.Take(3).ToList();
+    public bool                HasAnyEvents   => Events.Count > 0;
     public int    OverflowCount => Math.Max(0, Events.Count - 3);
     public bool   HasOverflow   => OverflowCount > 0;
     public string OverflowLabel => $"+{OverflowCount} more";

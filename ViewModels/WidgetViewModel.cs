@@ -63,23 +63,30 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(DayName));
         OnPropertyChanged(nameof(MonthYear));
 
-        var start  = DisplayedMonth;
-        var end    = DisplayedMonth.AddMonths(1);
-        var events = await _service.GetEventsAsync(start, end);
+        // Use the full 6-week grid range so multi-day events that started before
+        // the displayed month are still fetched and placed on all their days.
+        var gridStart = CalendarDays.Count > 0 ? CalendarDays.First().Date : DisplayedMonth;
+        var gridEnd   = CalendarDays.Count > 0 ? CalendarDays.Last().Date.AddDays(1)
+                                               : DisplayedMonth.AddMonths(1);
+        var events = await _service.GetEventsAsync(gridStart, gridEnd);
 
-        // Today's events
+        // Today's events — include multi-day events that span today
         TodayEvents.Clear();
-        foreach (var e in events.Where(e => e.StartTime.Date == Today.Date))
+        foreach (var e in events
+            .Where(e => e.StartTime.Date <= Today.Date && e.EndTime.Date >= Today.Date)
+            .OrderBy(e => e.StartTime))
             TodayEvents.Add(e);
 
-        // Next 5 upcoming (not today)
+        // Next 5 upcoming (starting strictly after today)
         UpcomingEvents.Clear();
         foreach (var e in events.Where(e => e.StartTime.Date > Today.Date).Take(5))
             UpcomingEvents.Add(e);
 
-        // Distribute events into calendar-day dots
+        // Distribute events into calendar-day dots (multi-day events appear on every day they span)
         foreach (var day in CalendarDays)
-            day.Events = events.Where(e => e.StartTime.Date == day.Date.Date).ToList();
+            day.Events = events
+                .Where(e => e.StartTime.Date <= day.Date.Date && e.EndTime.Date >= day.Date.Date)
+                .ToList();
 
         OnPropertyChanged(nameof(HasNoTodayEvents));
         OnPropertyChanged(nameof(HasNoUpcomingEvents));

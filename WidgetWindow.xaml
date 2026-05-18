@@ -31,6 +31,7 @@
                     <ColumnDefinition Width="*"/>    <!-- drag zone       -->
                     <ColumnDefinition Width="Auto"/> <!-- pin toggle      -->
                     <ColumnDefinition Width="Auto"/> <!-- size toggle     -->
+                    <ColumnDefinition Width="Auto"/> <!-- mute toggle     -->
                     <ColumnDefinition Width="Auto"/> <!-- close           -->
                 </Grid.ColumnDefinitions>
 
@@ -40,6 +41,9 @@
                     Padding="10,8,8,8"
                     Background="Transparent"
                     PointerPressed="DragHandle_PointerPressed"
+                    PointerMoved="DragHandle_PointerMoved"
+                    PointerReleased="DragHandle_PointerReleased"
+                    PointerCaptureLost="DragHandle_PointerCaptureLost"
                     ToolTipService.ToolTip="Drag to move">
                     <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
 
@@ -101,9 +105,24 @@
                     <FontIcon x:Name="SizeIcon" Glyph="&#xE73F;" FontSize="11"/>
                 </Button>
 
-                <!-- Close -->
+                <!-- Mute / Unmute -->
                 <Button
                     Grid.Column="3"
+                    x:Name="MuteBtn"
+                    Click="MuteBtn_Click"
+                    Width="28" Height="28"
+                    Padding="0"
+                    Margin="2,0,0,0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    PointerEntered="WidgetBtn_PointerEntered"
+                    PointerExited="WidgetBtn_PointerExited">
+                    <FontIcon x:Name="MuteIcon" Glyph="&#xE767;" FontSize="11"/>
+                </Button>
+
+                <!-- Close -->
+                <Button
+                    Grid.Column="4"
                     Click="CloseBtn_Click"
                     Width="28" Height="28"
                     Padding="0"

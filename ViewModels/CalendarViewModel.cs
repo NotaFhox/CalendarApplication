@@ -60,13 +60,19 @@ public partial class CalendarViewModel : ObservableObject
     [RelayCommand]
     private async Task LoadEventsAsync()
     {
-        var start  = DisplayedMonth;
-        var end    = DisplayedMonth.AddMonths(1);
-        var events = await _service.GetEventsAsync(start, end);
+        if (CalendarDays.Count == 0) return;
+
+        // Use the full grid range so multi-day events starting before the month
+        // (e.g. Dec 29 in a January grid) are still fetched and placed correctly.
+        var gridStart = CalendarDays.First().Date;
+        var gridEnd   = CalendarDays.Last().Date.AddDays(1);
+        var events    = await _service.GetEventsAsync(gridStart, gridEnd);
 
         foreach (var day in CalendarDays)
             day.Events = events
-                .Where(e => e.StartTime.Date == day.Date.Date)
+                .Where(e => e.StartTime.Date <= day.Date.Date
+                         && e.EndTime.Date   >= day.Date.Date)
+                .OrderBy(e => e.StartTime)
                 .ToList();
     }
 

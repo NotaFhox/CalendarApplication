@@ -14,4 +14,6 @@ public class AppSettings
     public string WidgetSize { get; set; } = "Large";
     /// <summary>Whether the widget floats above all other windows.</summary>
     public bool WidgetAlwaysOnTop { get; set; } = true;
+    /// <summary>Whether WinUI interaction sounds are enabled.</summary>
+    public bool SoundEnabled { get; set; } = true;
 }

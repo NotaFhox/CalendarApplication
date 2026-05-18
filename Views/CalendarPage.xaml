@@ -167,79 +167,74 @@
                                                 Mode=OneTime}"/>
                                     </Border>
 
-                                    <!-- Event chips (first 3) -->
-                                    <ItemsRepeater
-                                        ItemsSource="{x:Bind VisibleEvents, Mode=OneWay}"
+                                    <!-- Event chips — scrollable, shows all events -->
+                                    <ScrollViewer
+                                        MaxHeight="58"
+                                        VerticalScrollBarVisibility="Auto"
+                                        HorizontalScrollBarVisibility="Disabled"
                                         Margin="0,2,0,0">
-                                        <ItemsRepeater.ItemTemplate>
-                                            <DataTemplate x:DataType="models:CalendarEvent">
-                                                <Button
-                                                    HorizontalAlignment="Stretch"
-                                                    Padding="4,2"
-                                                    Margin="0,1"
-                                                    Tag="{x:Bind}"
-                                                    Tapped="ChipButton_Tapped"
-                                                    ToolTipService.ToolTip="{x:Bind ChipTooltip}"
-                                                    Background="Transparent"
-                                                    BorderThickness="0">
-                                                    <Button.ContextFlyout>
-                                                        <MenuFlyout>
-                                                            <MenuFlyoutItem
-                                                                Text="Edit"
-                                                                Tag="{x:Bind}"
-                                                                Click="ChipEdit_Click">
-                                                                <MenuFlyoutItem.Icon>
-                                                                    <FontIcon Glyph="&#xE70F;"/>
-                                                                </MenuFlyoutItem.Icon>
-                                                            </MenuFlyoutItem>
-                                                            <MenuFlyoutSeparator/>
-                                                            <MenuFlyoutItem
-                                                                Text="Delete"
-                                                                Tag="{x:Bind}"
-                                                                Click="ChipDelete_Click">
-                                                                <MenuFlyoutItem.Icon>
-                                                                    <FontIcon Glyph="&#xE74D;"
-                                                                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
-                                                                </MenuFlyoutItem.Icon>
-                                                            </MenuFlyoutItem>
-                                                        </MenuFlyout>
-                                                    </Button.ContextFlyout>
-                                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                                        <Ellipse
-                                                            Width="7" Height="7"
-                                                            VerticalAlignment="Center"
-                                                            Fill="{x:Bind Color,
-                                                                Converter={StaticResource StringToColorConverter}}"/>
-                                                        <TextBlock
-                                                            Text="{x:Bind Title}"
-                                                            FontSize="11"
-                                                            TextTrimming="CharacterEllipsis"
-                                                            MaxLines="1"
-                                                            VerticalAlignment="Center"/>
-                                                    </StackPanel>
-                                                </Button>
-                                            </DataTemplate>
-                                        </ItemsRepeater.ItemTemplate>
-                                    </ItemsRepeater>
-
-                                    <!-- "+N more" overflow — opens a flyout with all events -->
-                                    <Button
-                                        Tag="{x:Bind}"
-                                        Tapped="OverflowBtn_Tapped"
-                                        Padding="4,1,4,1"
-                                        Margin="0,1,0,0"
-                                        HorizontalAlignment="Left"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Visibility="{x:Bind HasOverflow,
-                                            Converter={StaticResource BoolToVisibilityConverter},
-                                            Mode=OneWay}">
-                                        <TextBlock
-                                            Text="{x:Bind OverflowLabel, Mode=OneWay}"
-                                            FontSize="10"
-                                            TextDecorations="Underline"
-                                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
-                                    </Button>
+                                        <ItemsRepeater
+                                            ItemsSource="{x:Bind Events, Mode=OneWay}">
+                                            <ItemsRepeater.ItemTemplate>
+                                                <DataTemplate x:DataType="models:CalendarEvent">
+                                                    <Button
+                                                        HorizontalAlignment="Stretch"
+                                                        Padding="4,2"
+                                                        Margin="0,1"
+                                                        Tag="{x:Bind}"
+                                                        Tapped="ChipButton_Tapped"
+                                                        ToolTipService.ToolTip="{x:Bind ChipTooltip}"
+                                                        Background="Transparent"
+                                                        BorderThickness="0">
+                                                        <Button.ContextFlyout>
+                                                            <MenuFlyout>
+                                                                <MenuFlyoutItem
+                                                                    Text="Edit"
+                                                                    Tag="{x:Bind}"
+                                                                    Click="ChipEdit_Click">
+                                                                    <MenuFlyoutItem.Icon>
+                                                                        <FontIcon Glyph="&#xE70F;"/>
+                                                                    </MenuFlyoutItem.Icon>
+                                                                </MenuFlyoutItem>
+                                                                <MenuFlyoutSeparator/>
+                                                                <MenuFlyoutItem
+                                                                    Text="Delete"
+                                                                    Tag="{x:Bind}"
+                                                                    Click="ChipDelete_Click">
+                                                                    <MenuFlyoutItem.Icon>
+                                                                        <FontIcon Glyph="&#xE74D;"
+                                                                            Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                                                                    </MenuFlyoutItem.Icon>
+                                                                </MenuFlyoutItem>
+                                                            </MenuFlyout>
+                                                        </Button.ContextFlyout>
+                                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                                            <Ellipse
+                                                                Width="7" Height="7"
+                                                                VerticalAlignment="Center"
+                                                                Fill="{x:Bind Color,
+                                                                    Converter={StaticResource StringToColorConverter}}"/>
+                                                            <TextBlock
+                                                                Text="{x:Bind Title}"
+                                                                FontSize="11"
+                                                                TextTrimming="CharacterEllipsis"
+                                                                MaxLines="1"
+                                                                VerticalAlignment="Center"/>
+                                                            <!-- Arrow indicator for multi-day events -->
+                                                            <TextBlock
+                                                                Text="→"
+                                                                FontSize="9"
+                                                                Opacity="0.6"
+                                                                VerticalAlignment="Center"
+                                                                Visibility="{x:Bind IsMultiDay,
+                                                                    Converter={StaticResource BoolToVisibilityConverter},
+                                                                    Mode=OneTime}"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
+                                    </ScrollViewer>
 
                                 </StackPanel>
                             </Grid>

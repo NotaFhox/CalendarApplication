@@ -20,18 +20,20 @@ public sealed partial class WidgetWindow : Window
 {
     // ── Win32 constants ────────────────────────────────────────────────────────
 
-    private const uint WM_NCLBUTTONDOWN  = 0x00A1;
-    private const nint HTCAPTION         = 2;
-    private const uint SWP_NOSIZE        = 0x0001;
-    private const uint SWP_NOMOVE        = 0x0002;
-    private const uint SWP_NOACTIVATE    = 0x0010;
-    private static readonly nint HWND_TOPMOST    = new(-1);
-    private static readonly nint HWND_NOTOPMOST  = new(-2);
+    private const uint SWP_NOSIZE     = 0x0001;
+    private const uint SWP_NOMOVE     = 0x0002;
+    private const uint SWP_NOACTIVATE = 0x0010;
+    private static readonly nint HWND_TOPMOST   = new(-1);
+    private static readonly nint HWND_NOTOPMOST = new(-2);
 
     // ── P/Invoke ───────────────────────────────────────────────────────────────
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct POINT { public int X; public int Y; }
+
     [LibraryImport("user32.dll")]
-    private static partial nint PostMessageW(nint hWnd, uint msg, nint wParam, nint lParam);
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool GetCursorPos(out POINT pt);
 
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -41,16 +43,22 @@ public sealed partial class WidgetWindow : Window
 
     // ── Fields ─────────────────────────────────────────────────────────────────
 
-    private readonly WidgetViewModel        _widgetVm      = new();
-    private readonly SettingsService        _settings      = new();
-    private readonly AppWindow              _appWindow;
-    private readonly nint                   _hwnd;
+    private readonly WidgetViewModel          _widgetVm  = new();
+    private readonly SettingsService          _settings  = new();
+    private readonly AppWindow                _appWindow;
+    private readonly nint                     _hwnd;
     private          DesktopAcrylicController? _acrylicController;
 
-    private bool _isLarge  = true;   // tracks current size mode
-    private bool _isPinned = true;   // tracks always-on-top state
+    private bool _isLarge        = true;   // current size mode
+    private bool _isPinned       = true;   // always-on-top state
+    private bool _isSoundEnabled = true;   // sound mute state
 
-    // Widget dimensions (logical pixels — Windows App SDK scales for DPI automatically)
+    // Manual drag tracking
+    private bool _isDragging;
+    private int  _dragCursorX, _dragCursorY;
+    private int  _dragWindowX, _dragWindowY;
+
+    // Widget dimensions (logical pixels — Windows App SDK handles DPI scaling)
     private const int LargeWidth  = 340;
     private const int LargeHeight = 420;
     private const int SmallWidth  = 220;
@@ -65,7 +73,7 @@ public sealed partial class WidgetWindow : Window
         _hwnd      = WinRT.Interop.WindowNative.GetWindowHandle(this);
         _appWindow = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(_hwnd));
 
-        SetupBackdrop();       // must happen before ConfigureWindow
+        SetupBackdrop();
         ConfigureWindow();
         RestorePositionAndSize();
         ShowCurrentView();
@@ -77,8 +85,8 @@ public sealed partial class WidgetWindow : Window
     // ── Backdrop ───────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Programmatic acrylic so we can lock IsInputActive = true — the backdrop
-    /// stays fully visible even when the widget does not have focus.
+    /// Programmatic acrylic keeps IsInputActive = true so the backdrop stays
+    /// visible even when the widget does not have focus.
     /// </summary>
     private void SetupBackdrop()
     {
@@ -96,7 +104,7 @@ public sealed partial class WidgetWindow : Window
 
     private void ConfigureWindow()
     {
-        // Frameless — removes the OS title-bar and border for a clean floating widget
+        // Frameless — removes OS title-bar and border for a clean floating widget
         if (_appWindow.Presenter is OverlappedPresenter p)
             p.SetBorderAndTitleBar(false, false);
 
@@ -108,8 +116,9 @@ public sealed partial class WidgetWindow : Window
     {
         var cfg = _settings.Load();
 
-        _isLarge  = cfg.WidgetSize != "Small";
-        _isPinned = cfg.WidgetAlwaysOnTop;
+        _isLarge        = cfg.WidgetSize != "Small";
+        _isPinned       = cfg.WidgetAlwaysOnTop;
+        _isSoundEnabled = cfg.SoundEnabled;
 
         int x = cfg.WidgetX > 0 ? cfg.WidgetX : 80;
         int y = cfg.WidgetY > 0 ? cfg.WidgetY : 80;
@@ -118,41 +127,55 @@ public sealed partial class WidgetWindow : Window
 
         _appWindow.MoveAndResize(new RectInt32(x, y, w, h));
         ApplyTopmost();
+        ApplySoundState();
     }
 
-    /// <summary>Applies or removes always-on-top based on _isPinned.</summary>
     private void ApplyTopmost()
     {
         var insertAfter = _isPinned ? HWND_TOPMOST : HWND_NOTOPMOST;
         SetWindowPos(_hwnd, insertAfter, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
     }
 
+    private void ApplySoundState()
+    {
+        ElementSoundPlayer.State = _isSoundEnabled
+            ? ElementSoundPlayerState.On
+            : ElementSoundPlayerState.Off;
+        UpdateMuteButton();
+    }
+
     // ── View switching ─────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Loads the correct view into WidgetFrame and refreshes the control icons/tooltips.
-    /// Content is set directly (not Frame.Navigate) to inject the shared ViewModel via constructor.
-    /// </summary>
     private void ShowCurrentView()
     {
         WidgetFrame.Content = _isLarge
             ? (object)new LargeWidgetView(_widgetVm)
             : new SmallWidgetView(_widgetVm);
 
-        // E73D = compress icon  E73F = expand icon
+        // E73D = compress  E73F = expand
         SizeIcon.Glyph = _isLarge ? "" : "";
         ToolTipService.SetToolTip(SizeBtn, _isLarge ? "Compact view" : "Full view");
 
         UpdatePinButton();
+        UpdateMuteButton();
     }
 
     private void UpdatePinButton()
     {
-        // E718 = Pin (always on top active)   E77A = Unpin
-        PinIcon.Glyph = _isPinned ? "" : "";
+        // E718 = Pin (always on top)   E77A = Unpin
+        PinIcon.Glyph   = _isPinned ? "" : "";
         PinIcon.Opacity = _isPinned ? 1.0 : 0.45;
         ToolTipService.SetToolTip(PinBtn,
             _isPinned ? "Unpin (allow behind other windows)" : "Pin (always on top)");
+    }
+
+    private void UpdateMuteButton()
+    {
+        // E767 = Volume (sound on)   E74F = Mute (sound off)
+        MuteIcon.Glyph   = _isSoundEnabled ? "" : "";
+        MuteIcon.Opacity = _isSoundEnabled ? 1.0 : 0.45;
+        ToolTipService.SetToolTip(MuteBtn,
+            _isSoundEnabled ? "Mute sounds" : "Unmute sounds");
     }
 
     // ── Position persistence ───────────────────────────────────────────────────
@@ -172,7 +195,6 @@ public sealed partial class WidgetWindow : Window
 
     private void RootBorder_Loaded(object sender, RoutedEventArgs e)
     {
-        // Fade the widget in from invisible on first load
         var fade = new DoubleAnimation
         {
             From           = 0,
@@ -188,12 +210,45 @@ public sealed partial class WidgetWindow : Window
         sb.Begin();
     }
 
-    // Drag handle — only the header strip, not the content area
+    // ── Drag (manual via GetCursorPos — PostMessageW is broken in WinUI 3) ─────
+
     private void DragHandle_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        // WM_NCLBUTTONDOWN + HTCAPTION tells Windows to move the window,
-        // giving us free Aero Snap and smooth pointer tracking at no cost.
-        PostMessageW(_hwnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+        if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed) return;
+
+        // Record the physical cursor position and current window origin
+        GetCursorPos(out var pt);
+        _dragCursorX = pt.X;
+        _dragCursorY = pt.Y;
+
+        var pos = _appWindow.Position;
+        _dragWindowX = pos.X;
+        _dragWindowY = pos.Y;
+
+        (sender as UIElement)?.CapturePointer(e.Pointer);
+        _isDragging = true;
+        e.Handled   = true;
+    }
+
+    private void DragHandle_PointerMoved(object sender, PointerRoutedEventArgs e)
+    {
+        if (!_isDragging) return;
+
+        GetCursorPos(out var pt);
+        _appWindow.Move(new Windows.Graphics.PointInt32(
+            _dragWindowX + pt.X - _dragCursorX,
+            _dragWindowY + pt.Y - _dragCursorY));
+    }
+
+    private void DragHandle_PointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        _isDragging = false;
+        (sender as UIElement)?.ReleasePointerCapture(e.Pointer);
+    }
+
+    private void DragHandle_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
+    {
+        _isDragging = false;
     }
 
     // ── Widget button hover animation + sound ──────────────────────────────────
@@ -247,7 +302,6 @@ public sealed partial class WidgetWindow : Window
     {
         _isLarge = !_isLarge;
 
-        // Resize window first, then swap content to avoid a layout flash
         _appWindow.Resize(new SizeInt32(
             _isLarge ? LargeWidth  : SmallWidth,
             _isLarge ? LargeHeight : SmallHeight));
@@ -259,9 +313,18 @@ public sealed partial class WidgetWindow : Window
         _settings.Save(cfg);
     }
 
+    private void MuteBtn_Click(object sender, RoutedEventArgs e)
+    {
+        _isSoundEnabled = !_isSoundEnabled;
+        ApplySoundState();
+
+        var cfg = _settings.Load();
+        cfg.SoundEnabled = _isSoundEnabled;
+        _settings.Save(cfg);
+    }
+
     private void CloseBtn_Click(object sender, RoutedEventArgs e)
     {
-        // Fade out before closing so the dismiss feels polished
         var fade = new DoubleAnimation
         {
             To             = 0,

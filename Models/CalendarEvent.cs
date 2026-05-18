@@ -20,12 +20,18 @@ public class CalendarEvent
     /// <summary>Short time label shown in the large widget's event list.</summary>
     public string StartTimeShort => IsAllDay ? "All day" : StartTime.ToString("h:mm tt");
 
+    /// <summary>True when the event spans more than one calendar day.</summary>
+    public bool IsMultiDay => EndTime.Date > StartTime.Date;
+
     /// <summary>Single-line tooltip shown on calendar chips: title + time (+ location if set).</summary>
     public string ChipTooltip
     {
         get
         {
-            var s = IsAllDay ? $"{Title}  All day" : $"{Title}  {StartTimeShort}";
+            string timeStr = IsMultiDay
+                ? $"{StartTime:MMM d} – {EndTime:MMM d}"
+                : IsAllDay ? "All day" : StartTimeShort;
+            var s = $"{Title}  {timeStr}";
             return !string.IsNullOrWhiteSpace(Location) ? $"{s}  |  {Location}" : s;
         }
     }

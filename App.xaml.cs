@@ -1,4 +1,5 @@
 using Calender.Data;
+using Calender.Services;
 using Microsoft.UI.Xaml;
 
 namespace Calender;
@@ -12,8 +13,11 @@ public partial class App : Application
         this.InitializeComponent();
         InitializeDatabase();
 
-        // Enable built-in WinUI interaction sounds (button clicks, selection, etc.)
-        ElementSoundPlayer.State = ElementSoundPlayerState.On;
+        // Restore sound preference from settings (widget toggle controls this at runtime)
+        var soundEnabled = new SettingsService().Load().SoundEnabled;
+        ElementSoundPlayer.State = soundEnabled
+            ? ElementSoundPlayerState.On
+            : ElementSoundPlayerState.Off;
         ElementSoundPlayer.SpatialAudioMode = ElementSpatialAudioMode.Off;
     }
 
