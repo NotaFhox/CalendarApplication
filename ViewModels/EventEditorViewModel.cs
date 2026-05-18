@@ -7,36 +7,46 @@ namespace Calender.ViewModels;
 /// <summary>
 /// Backs the EventEditorDialog form.
 /// Call Reset() before showing for a new event, LoadFrom() before showing for an edit.
-/// Call ToCalendarEvent() after the dialog closes to get the populated entity.
+/// Call ToCalendarEvent() after the dialog closes to retrieve the populated entity.
 /// </summary>
 public partial class EventEditorViewModel : ObservableObject
 {
+    // +--------------------------------------------------+
+    // |                    FIELDS                        |
+    // +--------------------------------------------------+
+
     private CalendarEvent? _editingEvent;
 
-    /// True when the dialog was opened for an existing event (edit mode).
+    // +--------------------------------------------------+
+    // |                   PROPERTIES                     |
+    // +--------------------------------------------------+
+
+    /// <summary>True when the dialog was opened for an existing event.</summary>
     public bool IsEditMode => _editingEvent is not null;
 
-    // ── Form fields ───────────────────────────────────────────────────────────
+    // WinUI 3: DatePicker.Date binds to DateTimeOffset; TimePicker.Time binds to TimeSpan.
+    [ObservableProperty] private string        _title       = string.Empty;
+    [ObservableProperty] private string?       _description;
+    [ObservableProperty] private string?       _location;
+    [ObservableProperty] private string        _color       = "#0078D4";
+    [ObservableProperty] private bool          _isAllDay;
+    [ObservableProperty] private DateTimeOffset _startDate  = DateTimeOffset.Now;
+    [ObservableProperty] private TimeSpan       _startTime  = DateTime.Now.TimeOfDay;
+    [ObservableProperty] private DateTimeOffset _endDate    = DateTimeOffset.Now;
+    [ObservableProperty] private TimeSpan       _endTime    = DateTime.Now.AddHours(1).TimeOfDay;
 
-    [ObservableProperty] private string  _title       = string.Empty;
-    [ObservableProperty] private string? _description;
-    [ObservableProperty] private string? _location;
-    [ObservableProperty] private string  _color       = "#0078D4";
-    [ObservableProperty] private bool    _isAllDay;
-
-    // WinUI 3 DatePicker.Date binds to DateTimeOffset; TimePicker.Time binds to TimeSpan
-    [ObservableProperty] private DateTimeOffset _startDate = DateTimeOffset.Now;
-    [ObservableProperty] private TimeSpan       _startTime = DateTime.Now.TimeOfDay;
-    [ObservableProperty] private DateTimeOffset _endDate   = DateTimeOffset.Now;
-    [ObservableProperty] private TimeSpan       _endTime   = DateTime.Now.AddHours(1).TimeOfDay;
-
-    // ── Commands ──────────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                   COMMANDS                       |
+    // +--------------------------------------------------+
 
     [RelayCommand]
     private void SelectColor(string hex) => Color = hex;
 
-    // ── Lifecycle helpers called by EventEditorDialog ─────────────────────────
+    // +--------------------------------------------------+
+    // |                DIALOG LIFECYCLE                  |
+    // +--------------------------------------------------+
 
+    /// <summary>Resets the form for creating a new event. Optionally pre-fills the date.</summary>
     public void Reset(DateTimeOffset? suggestedDate = null)
     {
         _editingEvent = null;
@@ -53,6 +63,7 @@ public partial class EventEditorViewModel : ObservableObject
         EndTime     = DateTime.Now.AddHours(1).TimeOfDay;
     }
 
+    /// <summary>Populates the form from an existing event for editing.</summary>
     public void LoadFrom(CalendarEvent evt)
     {
         _editingEvent = evt;
@@ -67,7 +78,7 @@ public partial class EventEditorViewModel : ObservableObject
         EndTime       = evt.EndTime.TimeOfDay;
     }
 
-    /// Merges form fields back into the entity (creates a new one when in create mode).
+    /// <summary>Merges form state back into an entity (creates a new one in create mode).</summary>
     public CalendarEvent ToCalendarEvent()
     {
         var evt         = _editingEvent ?? new CalendarEvent();

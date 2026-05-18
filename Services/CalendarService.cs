@@ -4,8 +4,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Calender.Services;
 
+/// <summary>Async CRUD operations over CalendarEvent via AppDbContext.</summary>
 public class CalendarService
 {
+    // +--------------------------------------------------+
+    // |                     READ                         |
+    // +--------------------------------------------------+
+
+    /// <summary>
+    /// Returns all events whose time range overlaps [start, end).
+    /// This correctly includes multi-day events that begin before <paramref name="start"/>.
+    /// </summary>
     public async Task<List<CalendarEvent>> GetEventsAsync(DateTime start, DateTime end)
     {
         await using var ctx = new AppDbContext();
@@ -14,6 +23,10 @@ public class CalendarService
             .OrderBy(e => e.StartTime)
             .ToListAsync();
     }
+
+    // +--------------------------------------------------+
+    // |                    WRITE                         |
+    // +--------------------------------------------------+
 
     public async Task<CalendarEvent> CreateAsync(CalendarEvent evt)
     {

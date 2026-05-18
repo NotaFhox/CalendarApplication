@@ -8,14 +8,15 @@ namespace Calender.ViewModels;
 
 public partial class CalendarViewModel : ObservableObject
 {
+    // +--------------------------------------------------+
+    // |                    FIELDS                        |
+    // +--------------------------------------------------+
+
     private readonly CalendarService _service = new();
 
-    // ── Event raised when the Page should open the EventEditorDialog.
-    //    null  → create new event
-    //    value → edit existing event
-    public event EventHandler<CalendarEvent?>? EventEditorRequested;
-
-    // ── State ─────────────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                   PROPERTIES                     |
+    // +--------------------------------------------------+
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MonthYearDisplay))]
@@ -23,13 +24,25 @@ public partial class CalendarViewModel : ObservableObject
 
     public string MonthYearDisplay => DisplayedMonth.ToString("MMMM yyyy");
 
-    [ObservableProperty]
-    private ObservableCollection<CalendarDay> _calendarDays = [];
+    [ObservableProperty] private ObservableCollection<CalendarDay> _calendarDays = [];
+    [ObservableProperty] private CalendarDay?                      _selectedDay;
 
-    [ObservableProperty]
-    private CalendarDay? _selectedDay;
+    // +--------------------------------------------------+
+    // |                    EVENTS                        |
+    // +--------------------------------------------------+
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    /// <summary>
+    /// Raised when a page should open the EventEditorDialog.
+    /// null = create new event; non-null = edit existing event.
+    /// </summary>
+    public event EventHandler<CalendarEvent?>? EventEditorRequested;
+
+    /// <summary>Date to pre-fill when the dialog opens for a new event (null = today).</summary>
+    public DateTime? PendingCreateDate { get; private set; }
+
+    // +--------------------------------------------------+
+    // |                  CONSTRUCTION                    |
+    // +--------------------------------------------------+
 
     public CalendarViewModel()
     {
@@ -37,7 +50,9 @@ public partial class CalendarViewModel : ObservableObject
         _ = LoadEventsAsync();
     }
 
-    // ── Navigation commands ───────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |              NAVIGATION COMMANDS                 |
+    // +--------------------------------------------------+
 
     [RelayCommand]
     private void PreviousMonth()
@@ -55,49 +70,6 @@ public partial class CalendarViewModel : ObservableObject
         _ = LoadEventsAsync();
     }
 
-    // ── Data loading ──────────────────────────────────────────────────────────
-
-    [RelayCommand]
-    private async Task LoadEventsAsync()
-    {
-        if (CalendarDays.Count == 0) return;
-
-        // Use the full grid range so multi-day events starting before the month
-        // (e.g. Dec 29 in a January grid) are still fetched and placed correctly.
-        var gridStart = CalendarDays.First().Date;
-        var gridEnd   = CalendarDays.Last().Date.AddDays(1);
-        var events    = await _service.GetEventsAsync(gridStart, gridEnd);
-
-        foreach (var day in CalendarDays)
-            day.Events = events
-                .Where(e => e.StartTime.Date <= day.Date.Date
-                         && e.EndTime.Date   >= day.Date.Date)
-                .OrderBy(e => e.StartTime)
-                .ToList();
-    }
-
-    // ── Editor trigger (called by the Page's event handlers) ─────────────────
-
-    /// <summary>Date to pre-fill when opening the dialog for a new event (null = today).</summary>
-    public DateTime? PendingCreateDate { get; private set; }
-
-    [RelayCommand]
-    private void RequestNewEvent()
-    {
-        PendingCreateDate = null;
-        EventEditorRequested?.Invoke(this, null);
-    }
-
-    /// <summary>Opens the create dialog with the given date pre-filled.</summary>
-    public void RequestNewEventOnDate(DateTime date)
-    {
-        PendingCreateDate = date;
-        EventEditorRequested?.Invoke(this, null);
-    }
-
-    public void RequestEditEvent(CalendarEvent evt) =>
-        EventEditorRequested?.Invoke(this, evt);
-
     [RelayCommand]
     private void GoToToday()
     {
@@ -106,7 +78,30 @@ public partial class CalendarViewModel : ObservableObject
         _ = LoadEventsAsync();
     }
 
-    // ── CRUD commands ─────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |               EDITOR COMMANDS                    |
+    // +--------------------------------------------------+
+
+    [RelayCommand]
+    private void RequestNewEvent()
+    {
+        PendingCreateDate = null;
+        EventEditorRequested?.Invoke(this, null);
+    }
+
+    /// <summary>Opens the create dialog with a specific date pre-filled.</summary>
+    public void RequestNewEventOnDate(DateTime date)
+    {
+        PendingCreateDate = date;
+        EventEditorRequested?.Invoke(this, null);
+    }
+
+    public void RequestEditEvent(CalendarEvent evt)
+        => EventEditorRequested?.Invoke(this, evt);
+
+    // +--------------------------------------------------+
+    // |                 CRUD COMMANDS                    |
+    // +--------------------------------------------------+
 
     [RelayCommand]
     private async Task CreateEventAsync(CalendarEvent evt)
@@ -129,7 +124,32 @@ public partial class CalendarViewModel : ObservableObject
         await LoadEventsAsync();
     }
 
-    // ── Grid builder ─────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                 DATA LOADING                     |
+    // +--------------------------------------------------+
+
+    [RelayCommand]
+    private async Task LoadEventsAsync()
+    {
+        if (CalendarDays.Count == 0) return;
+
+        // Use the full 6-week grid range so multi-day events that begin before
+        // the displayed month still appear on every day they span.
+        var gridStart = CalendarDays.First().Date;
+        var gridEnd   = CalendarDays.Last().Date.AddDays(1);
+        var events    = await _service.GetEventsAsync(gridStart, gridEnd);
+
+        foreach (var day in CalendarDays)
+            day.Events = events
+                .Where(e => e.StartTime.Date <= day.Date.Date
+                         && e.EndTime.Date   >= day.Date.Date)
+                .OrderBy(e => e.StartTime)
+                .ToList();
+    }
+
+    // +--------------------------------------------------+
+    // |                  GRID BUILDER                    |
+    // +--------------------------------------------------+
 
     private void BuildCalendarGrid()
     {

@@ -4,6 +4,10 @@ using Microsoft.UI.Xaml.Media;
 
 namespace Calender.Converters;
 
+/// <summary>
+/// Converts a CSS-style hex colour string (e.g. <c>"#0078D4"</c>) to a
+/// <see cref="SolidColorBrush"/>. Falls back to steel-blue on any parse failure.
+/// </summary>
 public sealed class StringToColorConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
@@ -18,7 +22,7 @@ public sealed class StringToColorConverter : IValueConverter
                     System.Convert.ToByte(hex[3..5], 16),
                     System.Convert.ToByte(hex[5..7], 16)));
             }
-            catch { /* fall through to default */ }
+            catch { /* fall through */ }
         }
         return new SolidColorBrush(Colors.SteelBlue);
     }

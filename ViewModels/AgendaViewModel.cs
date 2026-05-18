@@ -5,43 +5,58 @@ using System.Collections.ObjectModel;
 
 namespace Calender.ViewModels;
 
+// +--------------------------------------------------+
+// |                  AGENDA HEADER                   |
+// +--------------------------------------------------+
+
 /// <summary>Date-group header row in the Agenda flat list.</summary>
 public sealed class AgendaHeader
 {
     public DateTime Date { get; init; }
 
-    /// <summary>Human-readable label — "Today, May 11" for today, "Monday, May 12" otherwise.</summary>
+    /// <summary>"Today, May 11" for today; "Monday, May 12" for any other date.</summary>
     public string Display => Date.Date == DateTime.Today
         ? $"Today, {Date:MMMM d}"
         : Date.ToString("dddd, MMMM d");
 
-    public bool IsToday => Date.Date == DateTime.Today;
-
-    /// <summary>Full opacity for today's header; slightly muted for future dates.</summary>
+    public bool   IsToday       => Date.Date == DateTime.Today;
     public double HeaderOpacity => IsToday ? 1.0 : 0.65;
 }
 
+// +--------------------------------------------------+
+// |                 AGENDA VIEW MODEL                |
+// +--------------------------------------------------+
+
 /// <summary>
-/// ViewModel for AgendaPage.
 /// Builds a flat mixed list of AgendaHeader + CalendarEvent objects
-/// covering the next 60 days (today included).
+/// covering the next 60 days starting from today.
 /// </summary>
 public partial class AgendaViewModel : ObservableObject
 {
+    // +--------------------------------------------------+
+    // |                    FIELDS                        |
+    // +--------------------------------------------------+
+
     private readonly CalendarService _service = new();
 
-    [ObservableProperty]
-    private ObservableCollection<object> _rows = [];
+    // +--------------------------------------------------+
+    // |                   PROPERTIES                     |
+    // +--------------------------------------------------+
 
-    [ObservableProperty]
-    private bool _isEmpty;
+    [ObservableProperty] private ObservableCollection<object> _rows    = [];
+    [ObservableProperty] private bool                         _isEmpty;
 
-    public AgendaViewModel()
-    {
-        _ = LoadAsync();
-    }
+    // +--------------------------------------------------+
+    // |                  CONSTRUCTION                    |
+    // +--------------------------------------------------+
 
-    public async Task LoadAsync()
+    public AgendaViewModel() => _ = LoadAgendaAsync();
+
+    // +--------------------------------------------------+
+    // |                  DATA LOADING                    |
+    // +--------------------------------------------------+
+
+    public async Task LoadAgendaAsync()
     {
         var start  = DateTime.Today;
         var end    = start.AddDays(60);

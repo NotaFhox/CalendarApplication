@@ -11,12 +11,18 @@ namespace Calender.Views;
 
 public sealed partial class CalendarPage : Page
 {
+    // +--------------------------------------------------+
+    // |                    FIELDS                        |
+    // +--------------------------------------------------+
+
     public CalendarViewModel ViewModel { get; } = new();
 
     private readonly EventEditorDialog _editorDialog = new();
     private DateTime _previousMonth;
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                  CONSTRUCTION                    |
+    // +--------------------------------------------------+
 
     public CalendarPage()
     {
@@ -26,7 +32,9 @@ public sealed partial class CalendarPage : Page
         ViewModel.PropertyChanged += ViewModel_PropertyChanged;
     }
 
-    // ── Month-transition animation ────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |            MONTH-TRANSITION ANIMATION            |
+    // +--------------------------------------------------+
 
     private void ViewModel_PropertyChanged(object? sender,
         System.ComponentModel.PropertyChangedEventArgs e)
@@ -71,7 +79,9 @@ public sealed partial class CalendarPage : Page
         sb.Begin();
     }
 
-    // ── Hover animation + sound ───────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |            HOVER ANIMATION + SOUND               |
+    // +--------------------------------------------------+
 
     private static void ScaleButton(UIElement element, float target)
     {
@@ -110,7 +120,9 @@ public sealed partial class CalendarPage : Page
         if (sender is UIElement el) ScaleButton(el, 1.0f);
     }
 
-    // ── Dialog orchestration ──────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |            DIALOG ORCHESTRATION                  |
+    // +--------------------------------------------------+
 
     private async void OnEventEditorRequested(object? sender, CalendarEvent? evt)
     {
@@ -134,9 +146,7 @@ public sealed partial class CalendarPage : Page
         {
             var calEvent = _editorDialog.ViewModel.ToCalendarEvent();
             if (_editorDialog.ViewModel.IsEditMode)
-            {
                 await ViewModel.UpdateEventCommand.ExecuteAsync(calEvent);
-            }
             else
             {
                 await ViewModel.CreateEventCommand.ExecuteAsync(calEvent);
@@ -151,15 +161,15 @@ public sealed partial class CalendarPage : Page
         }
     }
 
-    // ── Day-cell tap → create event on that date ──────────────────────────────
+    // +--------------------------------------------------+
+    // |               DAY + CHIP HANDLERS               |
+    // +--------------------------------------------------+
 
     private void DayCell_Tapped(object sender, TappedRoutedEventArgs e)
     {
         if (sender is FrameworkElement fe && fe.Tag is DateTime date)
             ViewModel.RequestNewEventOnDate(date);
     }
-
-    // ── Chip interaction handlers ─────────────────────────────────────────────
 
     private void ChipButton_Tapped(object sender, TappedRoutedEventArgs e)
     {

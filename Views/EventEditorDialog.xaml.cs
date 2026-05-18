@@ -6,28 +6,44 @@ namespace Calender.Views;
 
 public sealed partial class EventEditorDialog : ContentDialog
 {
+    // +--------------------------------------------------+
+    // |                   PROPERTIES                     |
+    // +--------------------------------------------------+
+
     public EventEditorViewModel ViewModel { get; } = new();
 
-    // Stored so the caller can pass it to DeleteEventCommand if the
-    // secondary "Delete" button is pressed.
+    /// <summary>
+    /// Stored so the caller can pass it to DeleteEventCommand
+    /// when the secondary "Delete" button is pressed.
+    /// </summary>
     public CalendarEvent? OriginalEvent { get; private set; }
+
+    // +--------------------------------------------------+
+    // |                  CONSTRUCTION                    |
+    // +--------------------------------------------------+
 
     public EventEditorDialog()
     {
         this.InitializeComponent();
     }
 
+    // +--------------------------------------------------+
+    // |                DIALOG PREPARATION                |
+    // +--------------------------------------------------+
+
+    /// <summary>
     /// Call before ShowAsync() when creating a new event.
-    /// suggestedDate pre-fills the date pickers (defaults to today).
+    /// <paramref name="suggestedDate"/> pre-fills the date pickers (defaults to today).
+    /// </summary>
     public void PrepareForCreate(DateTimeOffset? suggestedDate = null)
     {
         OriginalEvent       = null;
-        SecondaryButtonText = string.Empty; // hide Delete button
+        SecondaryButtonText = string.Empty;
         Title               = "New Event";
         ViewModel.Reset(suggestedDate);
     }
 
-    /// Call before ShowAsync() when editing an existing event.
+    /// <summary>Call before ShowAsync() when editing an existing event.</summary>
     public void PrepareForEdit(CalendarEvent evt)
     {
         OriginalEvent       = evt;

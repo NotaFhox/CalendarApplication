@@ -9,22 +9,30 @@ namespace Calender.ViewModels;
 
 /// <summary>
 /// Shared ViewModel for both SmallWidgetView and LargeWidgetView.
-/// Owned by WidgetWindow; refreshes every 5 minutes via DispatcherTimer.
-/// Call Dispose() when the widget window closes to stop the timer.
+/// Owned by WidgetWindow; auto-refreshes every 5 minutes via DispatcherTimer.
+/// Call Dispose() when the widget window closes.
 /// </summary>
 public partial class WidgetViewModel : ObservableObject, IDisposable
 {
+    // +--------------------------------------------------+
+    // |                    FIELDS                        |
+    // +--------------------------------------------------+
+
     private readonly CalendarService _service = new();
     private readonly DispatcherTimer _timer;
 
-    // ── Today display ─────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |               TODAY DISPLAY                      |
+    // +--------------------------------------------------+
 
     [ObservableProperty] private DateTime _today = DateTime.Today;
 
     public string DayName   => Today.ToString("dddd");
     public string MonthYear => Today.ToString("MMMM yyyy");
 
-    // ── Events ────────────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                    EVENTS                        |
+    // +--------------------------------------------------+
 
     [ObservableProperty] private ObservableCollection<CalendarEvent> _todayEvents    = [];
     [ObservableProperty] private ObservableCollection<CalendarEvent> _upcomingEvents = [];
@@ -32,7 +40,9 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
     public bool HasNoTodayEvents    => TodayEvents.Count    == 0;
     public bool HasNoUpcomingEvents => UpcomingEvents.Count == 0;
 
-    // ── Mini-calendar (large widget) ──────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |             MINI-CALENDAR (LARGE VIEW)           |
+    // +--------------------------------------------------+
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MonthYearDisplay))]
@@ -42,7 +52,9 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
 
     public string MonthYearDisplay => DisplayedMonth.ToString("MMMM yyyy");
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                  CONSTRUCTION                    |
+    // +--------------------------------------------------+
 
     public WidgetViewModel()
     {
@@ -54,7 +66,9 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
         _timer.Start();
     }
 
-    // ── Commands ──────────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                  DATA REFRESH                    |
+    // +--------------------------------------------------+
 
     [RelayCommand]
     private async Task RefreshAsync()
@@ -63,26 +77,28 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(DayName));
         OnPropertyChanged(nameof(MonthYear));
 
-        // Use the full 6-week grid range so multi-day events that started before
-        // the displayed month are still fetched and placed on all their days.
+        // Use the full 6-week grid range so multi-day events that began before
+        // the displayed month are still fetched and placed on all spanning days.
         var gridStart = CalendarDays.Count > 0 ? CalendarDays.First().Date : DisplayedMonth;
-        var gridEnd   = CalendarDays.Count > 0 ? CalendarDays.Last().Date.AddDays(1)
-                                               : DisplayedMonth.AddMonths(1);
+        var gridEnd   = CalendarDays.Count > 0
+            ? CalendarDays.Last().Date.AddDays(1)
+            : DisplayedMonth.AddMonths(1);
+
         var events = await _service.GetEventsAsync(gridStart, gridEnd);
 
-        // Today's events — include multi-day events that span today
+        // Today's events — includes multi-day events that span today
         TodayEvents.Clear();
         foreach (var e in events
             .Where(e => e.StartTime.Date <= Today.Date && e.EndTime.Date >= Today.Date)
             .OrderBy(e => e.StartTime))
             TodayEvents.Add(e);
 
-        // Next 5 upcoming (starting strictly after today)
+        // Upcoming — next 5 events starting strictly after today
         UpcomingEvents.Clear();
         foreach (var e in events.Where(e => e.StartTime.Date > Today.Date).Take(5))
             UpcomingEvents.Add(e);
 
-        // Distribute events into calendar-day dots (multi-day events appear on every day they span)
+        // Calendar-dot placement — multi-day events appear on every day they span
         foreach (var day in CalendarDays)
             day.Events = events
                 .Where(e => e.StartTime.Date <= day.Date.Date && e.EndTime.Date >= day.Date.Date)
@@ -92,7 +108,9 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(HasNoUpcomingEvents));
     }
 
-    // ── Grid builder ──────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                  GRID BUILDER                    |
+    // +--------------------------------------------------+
 
     private void BuildCalendarGrid()
     {
@@ -110,7 +128,9 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
         }
     }
 
-    // ── Cleanup ───────────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                    CLEANUP                       |
+    // +--------------------------------------------------+
 
     public void Dispose() => _timer.Stop();
 }

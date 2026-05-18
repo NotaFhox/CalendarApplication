@@ -2,8 +2,10 @@ using Microsoft.UI.Xaml.Data;
 
 namespace Calender.Converters;
 
-/// Returns 1.0 for true (current-month days) and 0.35 for false (padding days).
-
+/// <summary>
+/// Returns <c>1.0</c> for <c>true</c> (current-month days) and
+/// <c>0.35</c> for <c>false</c> (padding days from adjacent months).
+/// </summary>
 public sealed class BoolToOpacityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)

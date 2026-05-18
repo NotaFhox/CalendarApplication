@@ -1,56 +1,59 @@
-# Calendar app
+# Calendar
 
-
-> Version 0.3.0
-
+> Version 0.6.0
 
 ---
 
-## INFORMATION
+## Stack
 
-### Technology Stack
+| Layer       | Technology                        | Version          |
+|-------------|-----------------------------------|------------------|
+| UI          | WinUI 3 / Windows App SDK         | 1.8.260204000    |
+| Runtime     | .NET                              | 9.0              |
+| MVVM        | CommunityToolkit.Mvvm             | 8.4.0            |
+| Database    | SQLite via EF Core                | 9.0.2            |
+| Build Tools | Microsoft.Windows.SDK.BuildTools  | 10.0.26100.7705  |
+| Min OS      | Windows 10 (1903)                 | 10.0.17763.0     |
 
-| Layer | Technology | Version |
-|---|---|---|
-| UI Framework | WinUI 3 / Windows App SDK | 1.8.260209005 |
-| Runtime | .NET | 9.0 |
-| MVVM | CommunityToolkit.Mvvm | 8.4.0 |
-| Database | SQLite via EF Core | 9.0.2 |
-| Build Tools | Microsoft.Windows.SDK.BuildTools | 10.0.26100.7705 |
-| Min OS | Windows 10 (1903) | 10.0.17763.0 |
+---
 
-### Folder Structure
+## Folder Structure
 
 ```
 Calender/
-├── App.xaml / App.xaml.cs              Entry point; registers converters, initialises DB
-├── MainWindow.xaml / .cs               NavigationView shell + PaneFooter widget toggle
+├── App.xaml / App.xaml.cs              Entry point — DB init, sound state, theme restore
+├── MainWindow.xaml / .cs               NavigationView shell + widget toggle
 ├── WidgetWindow.xaml / .cs             Frameless acrylic always-on-top widget window
 ├── app.manifest                        DPI-aware, Win10/11 compatibility
 │
 ├── Models/
 │   ├── CalendarEvent.cs                EF Core entity — persisted to SQLite
-│   ├── CalendarDay.cs                  UI grid-cell model (ObservableObject, not persisted)
-│   └── AppSettings.cs                  Widget position / size preference model
+│   ├── CalendarDay.cs                  UI grid-cell model (ObservableObject)
+│   └── AppSettings.cs                  Widget position, size, sound, and theme preferences
 │
 ├── Data/
 │   └── AppDbContext.cs                 SQLite context → %LOCALAPPDATA%\Calender\calendar.db
 │
 ├── Services/
-│   ├── CalendarService.cs              Async CRUD over AppDbContext
+│   ├── CalendarService.cs              Async CRUD; overlap query for multi-day events
 │   └── SettingsService.cs              JSON load/save → %LOCALAPPDATA%\Calender\settings.json
 │
 ├── ViewModels/
 │   ├── MainViewModel.cs                Shell-level state
-│   ├── CalendarViewModel.cs            Month grid, nav commands, CRUD commands
+│   ├── CalendarViewModel.cs            Month grid, navigation, CRUD commands
+│   ├── AgendaViewModel.cs              60-day flat event list with date-group headers
 │   ├── EventEditorViewModel.cs         Form state for the add/edit dialog
+│   ├── SettingsViewModel.cs            Settings page state; applies theme and sound live
 │   └── WidgetViewModel.cs              Shared widget VM; 5-min refresh timer, IDisposable
 │
 ├── Views/
-│   ├── CalendarPage.xaml / .cs         6-week grid with event chips + slide animation
+│   ├── CalendarPage.xaml / .cs         6-week grid — scrollable chips, multi-day arrows
+│   ├── AgendaPage.xaml / .cs           Chronological list of upcoming events
+│   ├── SettingsPage.xaml / .cs         Theme, sound, widget defaults, and about info
 │   ├── EventEditorDialog.xaml / .cs    ContentDialog for creating and editing events
 │   ├── SmallWidgetView.xaml / .cs      Compact widget — large date + TODAY/UPCOMING lists
-│   └── LargeWidgetView.xaml / .cs      Full widget — mini-calendar grid + TODAY events
+│   ├── LargeWidgetView.xaml / .cs      Full widget — mini-calendar grid + TODAY events
+│   └── AgendaTemplateSelector.cs       DataTemplateSelector for the agenda flat list
 │
 └── Converters/
     ├── BoolToAccentBrushConverter.cs   Accent-colour badge for today's date
@@ -58,42 +61,44 @@ Calender/
     ├── BoolToVisibilityConverter.cs    Visibility toggle; supports ConverterParameter=Invert
     └── StringToColorConverter.cs       Hex string → SolidColorBrush for event chip dots
 ```
+
 ---
 
-## How to test
+
+
+---
+
+## Build & Run
 
 ### Prerequisites
-- Visual Studio 2022 (v17.8+) with the **Windows application development** workload installed
-- OR the Windows App SDK 1.8 runtime installed separately if running from CLI
-- .NET 9.0 SDK (`dotnet --version` should report `9.x`)
+- Visual Studio 2022 (v17.8+) with the **Windows application development** workload
+- OR the Windows App SDK 1.8 runtime + .NET 9 SDK for CLI builds
 
-### Build & Run (Visual Studio)
+### Visual Studio
 1. Open `Calender.sln`
-2. Set the solution platform to **x64** (top toolbar)
-3. Press **F5** to build and launch with the debugger
+2. Set the solution platform to **x86** (required for the XAML compiler)
+3. Press **F5**
 
-### Build & Run (CLI)
+### CLI
 ```bash
-# From the repository root
 dotnet restore
-dotnet build -c Debug -r win-x64
-dotnet run --project Calender.csproj -r win-x64
-```
-
-
-### Database
-The SQLite database is created automatically on first launch at:
-```
-%LOCALAPPDATA%\Calender\calendar.db
-```
-Sometimes it doesn't create on the first launch — restarting the app usually fixes it.
-To inspect the database open the file with [DB Browser for SQLite](https://sqlitebrowser.org/) or the VS Code SQLite extension.
-
-### Settings
-Widget position and size are stored at:
-```
-%LOCALAPPDATA%\Calender\settings.json
+dotnet build -c Debug
+dotnet run --project Calender.csproj
 ```
 
 ---
+
+## Data Locations
+
+| File            | Path                                           |
+|-----------------|------------------------------------------------|
+| SQLite database | `%LOCALAPPDATA%\Calender\calendar.db`          |
+| Settings JSON   | `%LOCALAPPDATA%\Calender\settings.json`        |
+
+The database is created automatically on first launch. If it fails, restarting once fixes it.  
+Inspect the database with [DB Browser for SQLite](https://sqlitebrowser.org/) or the VS Code SQLite extension.  
+The data folder can be opened directly from the **Settings → About** section inside the app.
+
+---
+
 

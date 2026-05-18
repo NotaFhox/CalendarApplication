@@ -2,17 +2,14 @@
     x:Class="Calender.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Calender"
     Title="Calender">
 
-
-    <!-- Backdrop is set programmatically in code-behind so IsInputActive stays true
-         even when the window loses focus (avoids the automatic dimming behaviour). -->
+    <!-- Backdrop is set programmatically so IsInputActive stays true even on blur. -->
 
     <NavigationView
         x:Name="NavView"
         PaneDisplayMode="Left"
-        IsSettingsVisible="False"
+        IsSettingsVisible="True"
         IsPaneToggleButtonVisible="True"
         SelectionChanged="NavView_SelectionChanged"
         Loaded="NavView_Loaded">
@@ -30,7 +27,7 @@
             </NavigationViewItem>
         </NavigationView.MenuItems>
 
-        <!-- ── Pane footer: widget toggle ────────────────────────────────── -->
+        <!-- Pane footer: widget toggle -->
         <NavigationView.PaneFooter>
             <NavigationViewItem
                 x:Name="WidgetToggleItem"
@@ -44,7 +41,7 @@
             </NavigationViewItem>
         </NavigationView.PaneFooter>
 
-        <!-- Primary content frame — pages are navigated into here -->
+        <!-- Primary content frame -->
         <Frame x:Name="ContentFrame" Background="Transparent"/>
 
     </NavigationView>

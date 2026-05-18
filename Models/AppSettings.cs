@@ -6,14 +6,28 @@ namespace Calender.Models;
 /// </summary>
 public class AppSettings
 {
-    /// <summary>Widget left edge position in screen pixels.</summary>
-    public int    WidgetX    { get; set; } = 80;
-    /// <summary>Widget top edge position in screen pixels.</summary>
-    public int    WidgetY    { get; set; } = 80;
+    // +--------------------------------------------------+
+    // |                 WIDGET POSITION                  |
+    // +--------------------------------------------------+
+
+    public int WidgetX { get; set; } = 80;
+    public int WidgetY { get; set; } = 80;
+
+    // +--------------------------------------------------+
+    // |                 WIDGET BEHAVIOUR                 |
+    // +--------------------------------------------------+
+
     /// <summary>"Small" | "Large"</summary>
-    public string WidgetSize { get; set; } = "Large";
-    /// <summary>Whether the widget floats above all other windows.</summary>
-    public bool WidgetAlwaysOnTop { get; set; } = true;
-    /// <summary>Whether WinUI interaction sounds are enabled.</summary>
+    public string WidgetSize        { get; set; } = "Large";
+    public bool   WidgetAlwaysOnTop { get; set; } = true;
+
+    // +--------------------------------------------------+
+    // |               APP-WIDE PREFERENCES               |
+    // +--------------------------------------------------+
+
+    /// <summary>Global UI sound state.</summary>
     public bool SoundEnabled { get; set; } = true;
+
+    /// <summary>"System" | "Light" | "Dark"</summary>
+    public string Theme { get; set; } = "System";
 }

@@ -18,15 +18,20 @@ namespace Calender;
 
 public sealed partial class WidgetWindow : Window
 {
-    // ── Win32 constants ────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                  WIN32 CONSTANTS                 |
+    // +--------------------------------------------------+
 
     private const uint SWP_NOSIZE     = 0x0001;
     private const uint SWP_NOMOVE     = 0x0002;
     private const uint SWP_NOACTIVATE = 0x0010;
+
     private static readonly nint HWND_TOPMOST   = new(-1);
     private static readonly nint HWND_NOTOPMOST = new(-2);
 
-    // ── P/Invoke ───────────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                    P/INVOKE                      |
+    // +--------------------------------------------------+
 
     [StructLayout(LayoutKind.Sequential)]
     private struct POINT { public int X; public int Y; }
@@ -41,30 +46,34 @@ public sealed partial class WidgetWindow : Window
         nint hWnd, nint hWndInsertAfter,
         int X, int Y, int cx, int cy, uint uFlags);
 
-    // ── Fields ─────────────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                     FIELDS                       |
+    // +--------------------------------------------------+
 
-    private readonly WidgetViewModel          _widgetVm  = new();
-    private readonly SettingsService          _settings  = new();
-    private readonly AppWindow                _appWindow;
-    private readonly nint                     _hwnd;
+    private readonly WidgetViewModel           _widgetVm  = new();
+    private readonly SettingsService           _settings  = new();
+    private readonly AppWindow                 _appWindow;
+    private readonly nint                      _hwnd;
     private          DesktopAcrylicController? _acrylicController;
 
-    private bool _isLarge        = true;   // current size mode
-    private bool _isPinned       = true;   // always-on-top state
-    private bool _isSoundEnabled = true;   // sound mute state
+    private bool _isLarge        = true;
+    private bool _isPinned       = true;
+    private bool _isSoundEnabled = true;
 
-    // Manual drag tracking
+    // Drag state — updated every PointerMoved while dragging
     private bool _isDragging;
     private int  _dragCursorX, _dragCursorY;
     private int  _dragWindowX, _dragWindowY;
 
-    // Widget dimensions (logical pixels — Windows App SDK handles DPI scaling)
+    // Widget dimensions in logical pixels (Windows App SDK handles DPI scaling)
     private const int LargeWidth  = 340;
     private const int LargeHeight = 420;
     private const int SmallWidth  = 220;
     private const int SmallHeight = 300;
 
-    // ── Constructor ────────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                  CONSTRUCTION                    |
+    // +--------------------------------------------------+
 
     public WidgetWindow()
     {
@@ -82,12 +91,10 @@ public sealed partial class WidgetWindow : Window
         this.Closed        += (_, _) => OnWidgetClosed();
     }
 
-    // ── Backdrop ───────────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                    BACKDROP                      |
+    // +--------------------------------------------------+
 
-    /// <summary>
-    /// Programmatic acrylic keeps IsInputActive = true so the backdrop stays
-    /// visible even when the widget does not have focus.
-    /// </summary>
     private void SetupBackdrop()
     {
         if (!DesktopAcrylicController.IsSupported()) return;
@@ -100,15 +107,15 @@ public sealed partial class WidgetWindow : Window
         _acrylicController.SetSystemBackdropConfiguration(config);
     }
 
-    // ── Window configuration ───────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |               WINDOW CONFIGURATION               |
+    // +--------------------------------------------------+
 
     private void ConfigureWindow()
     {
-        // Frameless — removes OS title-bar and border for a clean floating widget
         if (_appWindow.Presenter is OverlappedPresenter p)
             p.SetBorderAndTitleBar(false, false);
 
-        // Keep widget out of Alt-Tab and the taskbar
         _appWindow.IsShownInSwitchers = false;
     }
 
@@ -144,7 +151,9 @@ public sealed partial class WidgetWindow : Window
         UpdateMuteButton();
     }
 
-    // ── View switching ─────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                  VIEW SWITCHING                  |
+    // +--------------------------------------------------+
 
     private void ShowCurrentView()
     {
@@ -152,8 +161,7 @@ public sealed partial class WidgetWindow : Window
             ? (object)new LargeWidgetView(_widgetVm)
             : new SmallWidgetView(_widgetVm);
 
-        // E73D = compress  E73F = expand
-        SizeIcon.Glyph = _isLarge ? "" : "";
+        SizeIcon.Glyph = _isLarge ? "" : "";
         ToolTipService.SetToolTip(SizeBtn, _isLarge ? "Compact view" : "Full view");
 
         UpdatePinButton();
@@ -162,8 +170,7 @@ public sealed partial class WidgetWindow : Window
 
     private void UpdatePinButton()
     {
-        // E718 = Pin (always on top)   E77A = Unpin
-        PinIcon.Glyph   = _isPinned ? "" : "";
+        PinIcon.Glyph   = _isPinned ? "" : "";
         PinIcon.Opacity = _isPinned ? 1.0 : 0.45;
         ToolTipService.SetToolTip(PinBtn,
             _isPinned ? "Unpin (allow behind other windows)" : "Pin (always on top)");
@@ -171,14 +178,15 @@ public sealed partial class WidgetWindow : Window
 
     private void UpdateMuteButton()
     {
-        // E767 = Volume (sound on)   E74F = Mute (sound off)
-        MuteIcon.Glyph   = _isSoundEnabled ? "" : "";
+        MuteIcon.Glyph   = _isSoundEnabled ? "" : "";
         MuteIcon.Opacity = _isSoundEnabled ? 1.0 : 0.45;
         ToolTipService.SetToolTip(MuteBtn,
             _isSoundEnabled ? "Mute sounds" : "Unmute sounds");
     }
 
-    // ── Position persistence ───────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |             POSITION PERSISTENCE                 |
+    // +--------------------------------------------------+
 
     private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
     {
@@ -191,7 +199,9 @@ public sealed partial class WidgetWindow : Window
         _settings.Save(cfg);
     }
 
-    // ── XAML event handlers ────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |              LOAD / FADE-IN HANDLER              |
+    // +--------------------------------------------------+
 
     private void RootBorder_Loaded(object sender, RoutedEventArgs e)
     {
@@ -210,13 +220,18 @@ public sealed partial class WidgetWindow : Window
         sb.Begin();
     }
 
-    // ── Drag (manual via GetCursorPos — PostMessageW is broken in WinUI 3) ─────
+    // +--------------------------------------------------+
+    // |                     DRAG                         |
+    // +--------------------------------------------------+
+
+    // Manual drag using GetCursorPos physical coordinates. PostMessageW(WM_NCLBUTTONDOWN)
+    // is unreliable in WinUI 3 because the framework holds pointer capture at the time
+    // PointerPressed fires, preventing the OS window-drag loop from taking over.
 
     private void DragHandle_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
         if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed) return;
 
-        // Record the physical cursor position and current window origin
         GetCursorPos(out var pt);
         _dragCursorX = pt.X;
         _dragCursorY = pt.Y;
@@ -233,7 +248,6 @@ public sealed partial class WidgetWindow : Window
     private void DragHandle_PointerMoved(object sender, PointerRoutedEventArgs e)
     {
         if (!_isDragging) return;
-
         GetCursorPos(out var pt);
         _appWindow.Move(new Windows.Graphics.PointInt32(
             _dragWindowX + pt.X - _dragCursorX,
@@ -247,11 +261,11 @@ public sealed partial class WidgetWindow : Window
     }
 
     private void DragHandle_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
-    {
-        _isDragging = false;
-    }
+        => _isDragging = false;
 
-    // ── Widget button hover animation + sound ──────────────────────────────────
+    // +--------------------------------------------------+
+    // |           BUTTON HOVER ANIMATION + SOUND         |
+    // +--------------------------------------------------+
 
     private static void ScaleWidgetBtn(UIElement element, float target)
     {
@@ -286,6 +300,10 @@ public sealed partial class WidgetWindow : Window
     {
         if (sender is UIElement el) ScaleWidgetBtn(el, 1.0f);
     }
+
+    // +--------------------------------------------------+
+    // |                 BUTTON HANDLERS                  |
+    // +--------------------------------------------------+
 
     private void PinBtn_Click(object sender, RoutedEventArgs e)
     {
@@ -340,7 +358,9 @@ public sealed partial class WidgetWindow : Window
         sb.Begin();
     }
 
-    // ── Cleanup ────────────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                    CLEANUP                       |
+    // +--------------------------------------------------+
 
     private void OnWidgetClosed()
     {

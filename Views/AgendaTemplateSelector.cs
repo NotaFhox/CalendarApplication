@@ -6,13 +6,14 @@ namespace Calender.Views;
 
 /// <summary>
 /// Picks the correct DataTemplate for the Agenda flat list:
-/// AgendaHeader rows get HeaderTemplate, CalendarEvent rows get EventTemplate.
+/// <see cref="AgendaHeader"/> rows → HeaderTemplate;
+/// CalendarEvent rows → EventTemplate.
 /// </summary>
 public sealed class AgendaTemplateSelector : DataTemplateSelector
 {
     public DataTemplate? HeaderTemplate { get; set; }
     public DataTemplate? EventTemplate  { get; set; }
 
-    protected override DataTemplate SelectTemplateCore(object item) =>
-        item is AgendaHeader ? HeaderTemplate! : EventTemplate!;
+    protected override DataTemplate SelectTemplateCore(object item)
+        => item is AgendaHeader ? HeaderTemplate! : EventTemplate!;
 }

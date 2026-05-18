@@ -7,17 +7,23 @@ public class AppDbContext : DbContext
 {
     public DbSet<CalendarEvent> Events { get; set; }
 
+    // +--------------------------------------------------+
+    // |                  CONFIGURATION                   |
+    // +--------------------------------------------------+
+
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
-        // Store the database in %LOCALAPPDATA%\Calender\calendar.db
         var folder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Calender");
 
         Directory.CreateDirectory(folder);
-
         options.UseSqlite($"Data Source={Path.Combine(folder, "calendar.db")}");
     }
+
+    // +--------------------------------------------------+
+    // |                   MODEL SHAPE                    |
+    // +--------------------------------------------------+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -9,18 +9,22 @@ namespace Calender;
 
 public sealed partial class MainWindow : Window
 {
-    // Map navigation tags
-    private static readonly Dictionary<string, Type> _pageMap = new()
+    // +--------------------------------------------------+
+    // |                    FIELDS                        |
+    // +--------------------------------------------------+
+
+    private static readonly Dictionary<string, Type> _pages = new()
     {
         ["CalendarPage"] = typeof(CalendarPage),
         ["AgendaPage"]   = typeof(AgendaPage),
     };
 
-    // Nullable — null means the widget is not currently open
-    private WidgetWindow? _widgetWindow;
+    private WidgetWindow?    _widgetWindow;
+    private MicaController?  _micaController;
 
-    // Programmatic Mica backdrop (keeps IsInputActive = true so it never dims on blur)
-    private MicaController? _micaController;
+    // +--------------------------------------------------+
+    // |                  CONSTRUCTION                    |
+    // +--------------------------------------------------+
 
     public MainWindow()
     {
@@ -30,13 +34,14 @@ public sealed partial class MainWindow : Window
         this.Closed += (_, _) => _micaController?.Dispose();
     }
 
-    // ── Backdrop ──────────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                    BACKDROP                      |
+    // +--------------------------------------------------+
 
     private void SetupBackdrop()
     {
         if (!MicaController.IsSupported()) return;
 
-        // IsInputActive = true → backdrop stays fully lit even when window loses focus
         var config = new SystemBackdropConfiguration { IsInputActive = true };
 
         _micaController = new MicaController { Kind = MicaKind.BaseAlt };
@@ -45,11 +50,12 @@ public sealed partial class MainWindow : Window
         _micaController.SetSystemBackdropConfiguration(config);
     }
 
-    // ── Navigation ────────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                   NAVIGATION                     |
+    // +--------------------------------------------------+
 
     private void NavView_Loaded(object sender, RoutedEventArgs e)
     {
-        // Select the first item and navigate to it on startup
         NavView.SelectedItem = NavView.MenuItems[0];
         ContentFrame.Navigate(typeof(CalendarPage));
     }
@@ -57,16 +63,22 @@ public sealed partial class MainWindow : Window
     private void NavView_SelectionChanged(NavigationView sender,
         NavigationViewSelectionChangedEventArgs args)
     {
-        if (args.IsSettingsSelected) return;
+        if (args.IsSettingsSelected)
+        {
+            ContentFrame.Navigate(typeof(SettingsPage));
+            return;
+        }
 
         if (args.SelectedItemContainer?.Tag is string tag
-            && _pageMap.TryGetValue(tag, out var pageType))
+            && _pages.TryGetValue(tag, out var pageType))
         {
             ContentFrame.Navigate(pageType);
         }
     }
 
-    // ── Widget toggle ─────────────────────────────────────────────────────────
+    // +--------------------------------------------------+
+    // |                 WIDGET TOGGLE                    |
+    // +--------------------------------------------------+
 
     private void WidgetToggle_Tapped(object sender, TappedRoutedEventArgs e)
     {
@@ -79,7 +91,6 @@ public sealed partial class MainWindow : Window
         else
         {
             _widgetWindow.Close();
-            // _widgetWindow is set back to null by the Closed handler above
         }
     }
 }

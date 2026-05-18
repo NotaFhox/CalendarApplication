@@ -4,16 +4,24 @@ using System.Text.Json;
 namespace Calender.Services;
 
 /// <summary>
-/// Loads and saves AppSettings as JSON beside the SQLite database.
-/// All failures are swallowed — the app always gets a valid settings object.
+/// Loads and saves AppSettings as JSON alongside the SQLite database.
+/// All I/O failures are swallowed — callers always receive a valid settings object.
 /// </summary>
 public class SettingsService
 {
+    // +--------------------------------------------------+
+    // |                    FIELDS                        |
+    // +--------------------------------------------------+
+
     private static string SettingsPath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Calender", "settings.json");
 
     private static readonly JsonSerializerOptions _writeOpts = new() { WriteIndented = true };
+
+    // +--------------------------------------------------+
+    // |                    LOAD / SAVE                   |
+    // +--------------------------------------------------+
 
     public AppSettings Load()
     {
